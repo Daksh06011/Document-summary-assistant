@@ -90,17 +90,29 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
 
   } catch (error) {
     console.error('Error processing file:', error);
-    
+
     // Clean up file if it exists
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-    
-    res.status(500).json({ 
-      error: 'Failed to process document', 
-      message: error.message 
+
+    res.status(500).json({
+      error: 'Failed to process document',
+      message: error.message
     });
   }
+});
+
+// 404 Error handling
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    error: 'API endpoint not found',
+    message: 'The requested API endpoint does not exist'
+  });
+});
+
+app.use('*', (req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
 // Error handling middleware

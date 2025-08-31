@@ -1,4 +1,5 @@
 const Tesseract = require('tesseract.js');
+const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
@@ -6,18 +7,25 @@ class OCRProcessor {
   static async extractTextFromImage(filePath) {
     try {
       console.log('Starting OCR processing for:', filePath);
-      
+
+      // Read and resize image for faster OCR processing
+      const imageBuffer = fs.readFileSync(filePath);
+      const resizedBuffer = await sharp(imageBuffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
       const result = await Tesseract.recognize(
-        filePath,
+        resizedBuffer,
         'eng', // English language
-        { 
-          logger: m => console.log(m),
-          // You can add more languages here if needed: ['eng', 'spa', 'fra', etc.]
+        {
+          psm: 6, // Uniform block of text
+          // Removed verbose logger to speed up processing
         }
       );
 
       const extractedText = result.data.text.trim();
-      
+
       if (!extractedText || extractedText.length === 0) {
         throw new Error('No text could be extracted from the image');
       }
@@ -27,11 +35,11 @@ class OCRProcessor {
 
     } catch (error) {
       console.error('OCR processing error:', error);
-      
+
       if (error.message.includes('Tesseract failed to load')) {
         throw new Error('OCR engine failed to initialize. Please try again.');
       }
-      
+
       throw new Error(`Failed to process image with OCR: ${error.message}`);
     }
   }

@@ -1,211 +1,264 @@
-class DocumentSummaryApp {
-    constructor() {
-        this.initializeElements();
-        this.setupEventListeners();
-        this.selectedFile = null;
-    }
+// DOM Elements
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const browseFilesBtn = document.getElementById('browseFilesBtn');
+const processBtn = document.getElementById('processBtn');
+const summaryLength = document.getElementById('summaryLength');
+const resultsSection = document.getElementById('resultsSection');
+const loading = document.getElementById('loading');
+const results = document.getElementById('results');
+const extractedText = document.getElementById('extractedText');
+const generatedSummary = document.getElementById('generatedSummary');
+const newDocumentBtn = document.getElementById('newDocumentBtn');
 
-    initializeElements() {
-        this.dropArea = document.getElementById('dropArea');
-        this.fileInput = document.getElementById('fileInput');
-        this.processBtn = document.getElementById('processBtn');
-        this.summaryLength = document.getElementById('summaryLength');
-        this.resultsSection = document.getElementById('resultsSection');
-        this.loading = document.getElementById('loading');
-        this.results = document.getElementById('results');
-        this.extractedText = document.getElementById('extractedText');
-        this.generatedSummary = document.getElementById('generatedSummary');
-        this.newDocumentBtn = document.getElementById('newDocumentBtn');
-    }
+// State
+let selectedFile = null;
 
-    setupEventListeners() {
-        // Drag and drop events
-        this.dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            this.dropArea.classList.add('dragover');
-        });
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    setupDragAndDrop();
+});
 
-        this.dropArea.addEventListener('dragleave', () => {
-            this.dropArea.classList.remove('dragover');
-        });
+// Event Listeners
+function setupEventListeners() {
+    browseFilesBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    processBtn.addEventListener('click', processDocument);
+    newDocumentBtn.addEventListener('click', resetApp);
+    summaryLength.addEventListener('change', updateProcessButton);
+}
 
-        this.dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            this.dropArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                this.handleFileSelect(files[0]);
-            }
-        });
+// Drag and Drop Setup
+function setupDragAndDrop() {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
 
-        // File input change
-        this.fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                this.handleFileSelect(e.target.files[0]);
-            }
-        });
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
 
-        // Click on browse files button to trigger file input
-        const browseFilesBtn = document.getElementById('browseFilesBtn');
-        if (this.browseFilesClickHandler) {
-            browseFilesBtn.removeEventListener('click', this.browseFilesClickHandler);
-        }
-        this.browseFilesClickHandler = function(event) {
-            event.stopPropagation();
-            this.fileInput.click();
-        }.bind(this);
-        browseFilesBtn.addEventListener('click', this.browseFilesClickHandler);
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
 
-        // Process button
-        this.processBtn.addEventListener('click', () => {
-            this.processDocument();
-        });
+    dropArea.addEventListener('drop', handleDrop, false);
+}
 
-        // New document button
-        this.newDocumentBtn.addEventListener('click', () => {
-            this.resetUI();
-        });
-    }
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
 
-    handleFileSelect(file) {
-        // Validate file type
-        const allowedTypes = ['.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif'];
-        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-        
-        if (!allowedTypes.includes(fileExt)) {
-            this.showError('Invalid file type. Please upload a PDF or image file.');
-            return;
-        }
+function highlight() {
+    dropArea.classList.add('dragover');
+}
 
-        // Validate file size (10MB max)
-        if (file.size > 10 * 1024 * 1024) {
-            this.showError('File too large. Maximum size is 10MB.');
-            return;
-        }
+function unhighlight() {
+    dropArea.classList.remove('dragover');
+}
 
-        this.selectedFile = file;
-        this.updateDropArea(file.name);
-        this.processBtn.disabled = false;
-    }
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
 
-    updateDropArea(fileName) {
-        this.dropArea.innerHTML = `
-            <div class="drop-content">
-                <div class="upload-icon">✅</div>
-                <h3>File Selected</h3>
-                <p>${fileName}</p>
-                <p><small>Click to choose a different file</small></p>
-            </div>
-        `;
-        
-        // Remove any existing click event listener before adding a new one
-        if (this.dropAreaClickHandler) {
-            this.dropArea.removeEventListener('click', this.dropAreaClickHandler);
-        }
-        this.dropAreaClickHandler = function(event) {
-            event.stopPropagation();
-            this.fileInput.click();
-        }.bind(this);
-        this.dropArea.addEventListener('click', this.dropAreaClickHandler);
-    }
+function handleFileSelect(e) {
+    const files = e.target.files;
+    handleFiles(files);
+}
 
-    async processDocument() {
-        if (!this.selectedFile) return;
-
-        this.showLoading();
-        
-        const formData = new FormData();
-        formData.append('document', this.selectedFile);
-        formData.append('summaryLength', this.summaryLength.value);
-
-        try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showResults(data);
-            } else {
-                this.showError(data.error || 'Failed to process document');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.showError('Network error. Please try again.');
-        }
-    }
-
-    showLoading() {
-        this.resultsSection.style.display = 'block';
-        this.loading.style.display = 'block';
-        this.results.style.display = 'none';
-        this.processBtn.disabled = true;
-    }
-
-    showResults(data) {
-        this.loading.style.display = 'none';
-        this.results.style.display = 'block';
-        
-        // Display extracted text
-        this.extractedText.textContent = data.extractedText || 'No text could be extracted.';
-        
-        // Display summary
-        this.generatedSummary.textContent = data.summary || 'No summary could be generated.';
-        
-        // Scroll to results
-        this.resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    showError(message) {
-        alert('Error: ' + message);
-        this.resetUI();
-    }
-
-    resetUI() {
-        this.selectedFile = null;
-        this.processBtn.disabled = true;
-        this.resultsSection.style.display = 'none';
-        
-        // Reset drop area
-        this.dropArea.innerHTML = `
-            <div class="drop-content">
-                <div class="upload-icon">📁</div>
-                <h3>Drag & Drop your file here</h3>
-                <p>or</p>
-                <button id="browseFilesBtn" class="file-input-label" type="button">
-                    Browse Files
-                </button>
-            </div>
-        `;
-        
-        // Re-add event listeners
-        const browseFilesBtn = document.getElementById('browseFilesBtn');
-        if (this.browseFilesClickHandler) {
-            browseFilesBtn.removeEventListener('click', this.browseFilesClickHandler);
-        }
-        this.browseFilesClickHandler = function(event) {
-            event.stopPropagation();
-            this.fileInput.click();
-        }.bind(this);
-        browseFilesBtn.addEventListener('click', this.browseFilesClickHandler);
-        
-        // Reset file input
-        this.fileInput.value = '';
+function handleFiles(files) {
+    if (files.length > 0) {
+        selectedFile = files[0];
+        updateDropArea();
+        updateProcessButton();
     }
 }
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new DocumentSummaryApp();
-});
+function updateDropArea() {
+    const dropContent = dropArea.querySelector('.drop-content');
+    dropContent.innerHTML = `
+        <div class="upload-icon">📄</div>
+        <h3>${selectedFile.name}</h3>
+        <p>${formatFileSize(selectedFile.size)}</p>
+        <button id="removeFileBtn" class="remove-file-btn">Remove File</button>
+    `;
 
-// Add some utility functions
+    document.getElementById('removeFileBtn').addEventListener('click', removeFile);
+}
+
+function removeFile() {
+    selectedFile = null;
+    resetDropArea();
+    updateProcessButton();
+}
+
+function resetDropArea() {
+    const dropContent = dropArea.querySelector('.drop-content');
+    dropContent.innerHTML = `
+        <div class="upload-icon">📁</div>
+        <h3>Drag & Drop your file here</h3>
+        <p>or</p>
+        <button id="browseFilesBtn" class="file-input-label" type="button">
+            Browse Files
+        </button>
+        <input
+            type="file"
+            id="fileInput"
+            accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp,.gif"
+            hidden
+        />
+    `;
+    document.getElementById('browseFilesBtn').addEventListener('click', () => fileInput.click());
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+}
+
+function updateProcessButton() {
+    processBtn.disabled = !selectedFile;
+    processBtn.textContent = selectedFile ? 'Process Document' : 'Select a file first';
+}
+
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Process Document
+async function processDocument() {
+    if (!selectedFile) return;
+
+    showLoading();
+    animateProgress();
+
+    const formData = new FormData();
+    formData.append('document', selectedFile);
+    formData.append('summaryLength', summaryLength.value);
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        displayResults(data);
+    } catch (error) {
+        console.error('Error processing document:', error);
+        showError('Failed to process document. Please try again.');
+    } finally {
+        hideLoading();
+    }
+}
+
+function animateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const loadingText = document.getElementById('loadingText');
+    let progress = 0;
+
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+
+        progressBar.style.width = progress + '%';
+
+        if (progress < 30) {
+            loadingText.textContent = 'Uploading document...';
+        } else if (progress < 60) {
+            loadingText.textContent = 'Extracting text...';
+        } else if (progress < 90) {
+            loadingText.textContent = 'Generating summary...';
+        }
+
+        if (progress >= 90) {
+            clearInterval(interval);
+            loadingText.textContent = 'Finalizing...';
+        }
+    }, 500);
+}
+
+function showLoading() {
+    resultsSection.style.display = 'block';
+    loading.style.display = 'block';
+    results.style.display = 'none';
+}
+
+function hideLoading() {
+    loading.style.display = 'none';
+    results.style.display = 'block';
+}
+
+function displayResults(data) {
+    extractedText.textContent = data.extractedText || 'No text extracted';
+    generatedSummary.textContent = data.summary || 'No summary generated';
+
+    // Add copy buttons
+    addCopyButton(extractedText, 'Copy Text');
+    addCopyButton(generatedSummary, 'Copy Summary');
+
+    // Add download button
+    addDownloadButton(data.summary);
+}
+
+function addCopyButton(container, buttonText) {
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = buttonText;
+    copyBtn.className = 'copy-btn';
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(container.textContent).then(() => {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = buttonText, 2000);
+        });
+    });
+    container.parentNode.insertBefore(copyBtn, container.nextSibling);
+}
+
+function addDownloadButton(summary) {
+    const downloadBtn = document.createElement('button');
+    downloadBtn.textContent = 'Download Summary';
+    downloadBtn.className = 'download-btn';
+    downloadBtn.addEventListener('click', () => {
+        const blob = new Blob([summary], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'summary.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+    generatedSummary.parentNode.appendChild(downloadBtn);
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    resultsSection.insertBefore(errorDiv, resultsSection.firstChild);
+
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
+}
+
+function resetApp() {
+    selectedFile = null;
+    resetDropArea();
+    updateProcessButton();
+    resultsSection.style.display = 'none';
+    extractedText.textContent = '';
+    generatedSummary.textContent = '';
+
+    // Remove copy and download buttons
+    document.querySelectorAll('.copy-btn, .download-btn').forEach(btn => btn.remove());
 }

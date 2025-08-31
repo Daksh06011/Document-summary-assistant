@@ -6,9 +6,51 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #121212;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     min-height: 100vh;
     color: #e0e0e0;
+}
+
+/* Enhance site colors */
+.upload-section {
+    background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+    box-shadow: 0 12px 40px rgba(59, 0, 255, 0.7);
+}
+
+.process-btn {
+    background: linear-gradient(45deg, #7f39fb, #6200ea);
+    color: white;
+    box-shadow: 0 6px 20px rgba(127, 57, 251, 0.8);
+}
+
+.process-btn:hover:not(:disabled) {
+    background: linear-gradient(45deg, #6200ea, #7f39fb);
+    box-shadow: 0 8px 30px rgba(127, 57, 251, 1);
+}
+
+.results-section {
+    background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+    box-shadow: 0 12px 40px rgba(59, 0, 255, 0.7);
+}
+
+.copy-btn, .download-btn {
+    background: linear-gradient(45deg, #7f39fb, #6200ea);
+    box-shadow: 0 6px 20px rgba(127, 57, 251, 0.8);
+}
+
+.copy-btn:hover, .download-btn:hover {
+    background: linear-gradient(45deg, #6200ea, #7f39fb);
+    box-shadow: 0 8px 30px rgba(127, 57, 251, 1);
+}
+
+.remove-file-btn {
+    background: linear-gradient(45deg, #cf6679, #b00020);
+    box-shadow: 0 6px 20px rgba(207, 102, 121, 0.8);
+}
+
+.remove-file-btn:hover {
+    background: linear-gradient(45deg, #b00020, #cf6679);
+    box-shadow: 0 8px 30px rgba(207, 102, 121, 1);
 }
 
 .container {
@@ -199,10 +241,120 @@ main {
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #333;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
     line-height: 1.6;
     color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+/* Enhanced summary formatting */
+.text-content h1,
+.text-content h2,
+.text-content h3,
+.text-content h4 {
+    color: #bb86fc;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.text-content h1 {
+    font-size: 1.4em;
+    border-bottom: 2px solid #bb86fc;
+    padding-bottom: 5px;
+}
+
+.text-content h2 {
+    font-size: 1.2em;
+    border-bottom: 1px solid #03dac6;
+    padding-bottom: 3px;
+}
+
+.text-content h3 {
+    font-size: 1.1em;
+    color: #03dac6;
+}
+
+.text-content ul,
+.text-content ol {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.text-content li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.text-content strong,
+.text-content b {
+    color: #03dac6;
+    font-weight: 600;
+}
+
+.text-content em,
+.text-content i {
+    color: #cf6679;
+    font-style: italic;
+}
+
+.text-content p {
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+.text-content blockquote {
+    border-left: 4px solid #bb86fc;
+    padding-left: 15px;
+    margin: 15px 0;
+    color: #ccc;
+    font-style: italic;
+}
+
+.text-content code {
+    background: #2c2c2c;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: #03dac6;
+}
+
+.text-content pre {
+    background: #2c2c2c;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 15px 0;
+    border: 1px solid #444;
+}
+
+.text-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Summary sections styling */
+.text-content .summary-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border-left: 3px solid #bb86fc;
+}
+
+.text-content .key-points {
+    background: linear-gradient(135deg, #1a1a1a, #252525);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.text-content .conclusions {
+    background: linear-gradient(135deg, #252525, #1a1a1a);
+    padding: 15px;
+    border-radius: 8px;
+    border-top: 2px solid #03dac6;
 }
 
 .new-document-btn {
@@ -266,6 +418,130 @@ footer {
     
     .drop-area {
         padding: 15px;
+    }
+}
+
+/* Progress Bar */
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #bb86fc, #03dac6);
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Copy and Download Buttons */
+.copy-btn, .download-btn {
+    background: linear-gradient(45deg, #bb86fc, #3700b3);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    box-shadow: 0 2px 10px rgba(187, 134, 252, 0.4);
+}
+
+.copy-btn:hover, .download-btn:hover {
+    background: linear-gradient(45deg, #3700b3, #bb86fc);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(187, 134, 252, 0.6);
+}
+
+/* Remove File Button */
+.remove-file-btn {
+    background: linear-gradient(45deg, #cf6679, #b00020);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    box-shadow: 0 2px 10px rgba(207, 102, 121, 0.4);
+}
+
+.remove-file-btn:hover {
+    background: linear-gradient(45deg, #b00020, #cf6679);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(207, 102, 121, 0.6);
+}
+
+/* Error Message */
+.error-message {
+    background: linear-gradient(45deg, #cf6679, #b00020);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(207, 102, 121, 0.6);
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Enhanced Animations */
+.upload-section, .results-section {
+    animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.result-card {
+    animation: fadeInScale 0.5s ease;
+    animation-fill-mode: both;
+}
+
+.result-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.result-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+@keyframes fadeInScale {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
